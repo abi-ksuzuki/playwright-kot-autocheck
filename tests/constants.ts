@@ -1,0 +1,1 @@
+export const OVERTIME_HOURS_IN_THE_LAST_WEEK = "以下、先々週の残業が4時間以上"
