@@ -35,6 +35,7 @@ export async function postSlack( errorList: string[][] ){
     try{
         console.log('==== postSlack Start ====');
 
+        let result = false;
         let today = new Date();
         let formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
         let blocks: blocks = [
@@ -42,12 +43,12 @@ export async function postSlack( errorList: string[][] ){
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": ":information_source: *" + formattedDate + " KOT における未申請の打刻エラーをお知らせします。* :information_source:"
+                    "text": ":information_source: *" + formattedDate + " デスクネッツにおける期限が5営業日以内のアンケート未回答をお知らせします。* :information_source:"
                 }
             }
         ];
         if(errorList.length > 0){
-            // 打刻エラーがある場合
+            // 未回答がある場合
             blocks.push(
                 {
                     "type": "section",
@@ -56,11 +57,11 @@ export async function postSlack( errorList: string[][] ){
                     "fields": [
                         {
                             "type": "mrkdwn",
-                            "text": "*氏名 日付*"
+                            "text": "*アンケート 期限*"
                         },
                         {
                             "type": "mrkdwn",
-                            "text": "*エラー理由*"
+                            "text": "*未回答者*"
                         }
                     ]
                 }
@@ -71,13 +72,14 @@ export async function postSlack( errorList: string[][] ){
                 blocks.push({"type": "divider"});
             })
         }else{
-            // 打刻エラーがない場合
+            // 未回答がない場合
+            result = true;
             blocks.push(
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":tada: 未申請の打刻エラーはありませんでした。 :tada:"
+                        "text": ":tada: 未回答はありませんでした。 :tada:"
                     }
                 }
             )
@@ -88,11 +90,17 @@ export async function postSlack( errorList: string[][] ){
         console.log(blocks);
         const client = new WebClient(process.env.SLACK_BOT_TOKEN as string)
 
+        let channelName = process.env.SLACK_CHANNEL as string;
+        if(result){
+            // 未回答者がいない場合、起動確認用のチャンネルに通知する
+            channelName = process.env.DEBUG_SLACK_CHANNEL as string;
+        }
+
         for (let i = 0; i < blocks.length; i += chunkSize) {
             const chunk = blocks.slice(i, i + chunkSize);
             await client.chat.postMessage({
-              text: "KOT における未申請の打刻エラーをお知らせします。",
-              channel: process.env.SLACK_CHANNEL as string,
+              text: "デスクネッツにおける期限が5営業日以内のアンケート未回答をお知らせします。",
+              channel: channelName,
               blocks: chunk
             })
         }
