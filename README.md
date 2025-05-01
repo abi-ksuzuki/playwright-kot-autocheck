@@ -2,6 +2,11 @@
 
 KING OF TIME の打刻エラーチェックを自動化します
 
+## `dev_last_month_check_kot`ブランチ
+・　KOTの打刻エラー、打刻なしをチェックしてSlackに通知します<br>
+・　環境変数：`KOT_LOGIN_ID` `KOT_LOGIN_PASSWORD`にカンマ区切りで設定することで、複数所属のチェックをまとめて行います<br>
+・　環境変数：`DAY_TO_ADD`に数値を設定することで、その営業日数分だけ前月の打刻エラーも通知します<br>
+
 ### 事前準備
 
 Node.js 20 LTS を事前インストールしておいてください

@@ -1,10 +1,10 @@
-import { chromium as playwright } from "playwright";
 import { expect } from "@playwright/test";
-import chromium from '@sparticuz/chromium';
+import { converteLastMonth, converteLastYear } from "./dateUtils";
 
-export async function checkKotNoStamp(loginId, loginPassword){
+// TODO: エラー投げたり空の配列returnするところを修正
+export async function checkKotLastMonthNoStamp({ page }){
     /*
-        KOTの未申請の打刻エラーを確認し、文字列のリストを返します
+        KOTの打刻なし/スケジュールありのうち未申請のものを確認し、文字列のリストを返します
         打刻エラーが存在する場合：
             [氏名, 日付, エラー理由]
         打刻エラーが存在しない場合：
@@ -12,16 +12,7 @@ export async function checkKotNoStamp(loginId, loginPassword){
     */
     try{
         // KOTの初回表示ガイドが表示されないようにする
-        console.log('==== checkKotNoStamp Start ====');
-
-        const browser = await playwright.launch({
-            args: chromium.args, // ライブラリ提供
-            headless: true,
-            executablePath: await chromium.executablePath() // ライブラリ提供(Chromium配置場所)
-        });
-        const page = await browser.newPage();
-        page.setDefaultTimeout(60000);
-
+        console.log('==== checkKotLastMonthNoStamp Start ====');
         await page.context().addInitScript(() => {
             // @ts-ignore
             window.localStorage.setItem("intro", "checked");
@@ -34,14 +25,14 @@ export async function checkKotNoStamp(loginId, loginPassword){
         await expect(page).toHaveTitle(/KING OF TIME/);
         
         // ログインID入力
-        const loginIdPage = await page.$("input#login_id");
-        expect(loginIdPage).not.toBeNull();
-        loginIdPage?.fill(loginId);
+        const loginId = await page.$("input#login_id");
+        expect(loginId).not.toBeNull();
+        loginId?.fill(process.env.KOT_LOGIN_ID as string);
         
         // パスワード入力
-        const loginPasswordPage = await page.$("input#login_password");
-        expect(loginPasswordPage).not.toBeNull();
-        loginPasswordPage?.fill(loginPassword);
+        const loginPassword = await page.$("input#login_password");
+        expect(loginPassword).not.toBeNull();
+        loginPassword?.fill(process.env.KOT_LOGIN_PASSWORD as string);
         
         // ログインボタンクリック
         const loginButton = await page.$("input#login_button");
@@ -67,10 +58,10 @@ export async function checkKotNoStamp(loginId, loginPassword){
         // 左上の「対応が必要な処理」の出現を待機
         await page.waitForSelector("h3.htTopTitle");
         
-        const errorKinmu = await page.$("li#not_working_schedule > a");
+        const errorKinmu = await page.$("li#in_complete_working > a");
         // await errorKinmu?.isVisible(); を使用すると
-        // errorKinmuがNullの場合undefinedが返り打刻なし/スケジュールあり画面遷移完了してから
-        // 再評価されて"打刻なし/スケジュールありはありません"となり処理が中断されてしまうことがある
+        // errorKinmuがNullの場合undefinedが返り打刻エラー勤務画面遷移完了してから
+        // 再評価されて"打刻エラーはありません"となり処理が中断されてしまうことがある
         let errorKinmuVisible = false;
         if(errorKinmu){
             errorKinmuVisible = await errorKinmu.isVisible();
@@ -82,12 +73,12 @@ export async function checkKotNoStamp(loginId, loginPassword){
             console.log("打刻なし/スケジュールありはありません");
             return [];
         }
-        
+
         // 打刻エラー勤務のリンクをクリック
         await errorKinmu?.click();
         await page.waitForLoadState("domcontentloaded");
         console.log('==== 打刻エラー勤務画面遷移完了 ====')
-        
+
         // 打刻なし/スケジュールありのaタグを取得
         const noStampingATag = await page.$(
             "div.htBlock-tab li:nth-child(2) a"
@@ -97,6 +88,29 @@ export async function checkKotNoStamp(loginId, loginPassword){
 
         // 右上の表示ボタンの出現を待機
         await page.waitForSelector("input#display_button");
+
+        // 先月分の取得
+        const month = await page.$('input[type="hidden"]#month');
+        if (month) {
+            const thisMonth = await month.evaluate(input => input.value);
+            const lastMonth = converteLastMonth(thisMonth);
+            // 去年を取得
+            if(lastMonth === '12'){
+                const year = await page.$('input[type="hidden"]#year');
+                if(year){
+                    const thisYear = await year.evaluate(input => input.value);
+                    const lastYear = converteLastYear(thisYear);
+                    // 値を設定
+                    await year.evaluate((input, value) => {
+                        input.value = value;
+                    }, lastYear);
+                }
+            }
+            // 値を設定
+            await month.evaluate((input, value) => {
+                input.value = value;
+            }, lastMonth);
+        }
         
         const dispBtn = await page.$("input#display_button");
         await dispBtn?.click();
@@ -110,12 +124,12 @@ export async function checkKotNoStamp(loginId, loginPassword){
             return [];
         }
 
-        let errorList = [];
-        let lineArr = [];
+        let errorList: string[][] = [];
+        let lineArr: string[] = [];
         let noStampingTrList = await page.$$(
             "div.htBlock-adjastableTableF_inner > table > tbody > tr"
         );
-        let passEmployeeIds = [];
+        let passEmployeeIds: string[] = [];
         if(process.env.KOT_PASS_EMPLOYEE_IDS !== undefined){
             passEmployeeIds = process.env.KOT_PASS_EMPLOYEE_IDS.split(',');
         }
@@ -126,12 +140,12 @@ export async function checkKotNoStamp(loginId, loginPassword){
             const tr = noStampingTrList[i];
             const tdList = await tr.$$("td");
         
-            const tmpName = (await tdList[2].textContent());
+            const tmpName = (await tdList[2].textContent()) as string;
             const name = tmpName.trim();
             const timeCardButton = await tdList[3].$(
                 "form > p > button.htBlock-buttonTimecard.htBlock-buttonTimecard_fill"
             );
-            const tmpNoStampingDt = (await tdList[6].textContent());
+            const tmpNoStampingDt = (await tdList[6].textContent()) as string;
             const noStampingDt = tmpNoStampingDt.trim();
 
             if(passEmployeeIds.includes(name.substring(0,5))){
@@ -148,8 +162,8 @@ export async function checkKotNoStamp(loginId, loginPassword){
 
             for(const timeCardTr of timeCardTrList){
                 const timeCardTdList = await timeCardTr.$$("td");
-                const dt = (await timeCardTdList[1].textContent());
-                if(compareDates(noStampingDt, dt)){
+                const dt = (await timeCardTdList[1].textContent()) as string;
+                if(compareDates(noStampingDt,dt)){
                     const scheduleShinseiIcon = await timeCardTdList[4].$("span.specific-requested");
                     const shukkinShinseiIcon = await timeCardTdList[6].$("span.specific-requested");
                     const taikinShinseiIcon = await timeCardTdList[7].$("span.specific-requested");
@@ -173,13 +187,13 @@ export async function checkKotNoStamp(loginId, loginPassword){
         }
         return errorList;
     }catch(error){
-        console.error('checkKotNoStamp Error:',error);
+        console.error('checkKotLastMonthNoStamp Error:',error);
     }finally{
-        console.log('==== checkKotNoStamp End ====');
+        console.log('==== checkKotLastMonthNoStamp End ====');
     }
 }
 
-function compareDates(date1, date2) {
+function compareDates(date1: string, date2: string): boolean {
     // yyyy-mm-dd 形式の日付から mm と dd を抽出
     const [year, month1, day1] = date1.split('-');
 
