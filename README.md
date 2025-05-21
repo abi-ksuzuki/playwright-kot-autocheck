@@ -2,9 +2,8 @@
 
 KING OF TIME の残業チェックを自動化します
 
-## `dev_weekly_over_time`ブランチ
-・　先週/先々週の残業時間をKOTでをチェックしてSlackに通知します<br>
-・　環境変数：`ATTACHMENTS_SLACK_CHANNEL_ID`にSlackIDを設定することで、そのSlackに添付された残業申請を取得して、残業理由に記載します<br>
+## `dev_abi_work_check_kot`ブランチ
+・　KOTのABI業務申請を1月分集計してSlackに通知します<br>
 
 ### 事前準備
 

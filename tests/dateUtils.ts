@@ -32,9 +32,9 @@ export function formatMonth(date: Date, sep=""): string {
 /*
   時間を変換する（0.0 -> 0:00）
 */
-export function formatTime(time: number): string{
+export function formatTime(time: number): string {
 
-    const convTime = String(time);
+    const convTime = String(time.toFixed(2));
     if(convTime.includes(".")){
         return convTime.padEnd(convTime.indexOf(".") + 3, "0").replace(".", ":");
     }else{
