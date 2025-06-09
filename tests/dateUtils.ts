@@ -34,7 +34,7 @@ export function formatMonth(date: Date, sep=""): string {
 */
 export function formatTime(time: number): string{
 
-    const convTime = String(time);
+    const convTime = String(time.toFixed(2));
     if(convTime.includes(".")){
         return convTime.padEnd(convTime.indexOf(".") + 3, "0").replace(".", ":");
     }else{
