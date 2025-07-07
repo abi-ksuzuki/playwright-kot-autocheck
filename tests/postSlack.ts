@@ -35,9 +35,9 @@ export async function postSlack( errorList: string[][] ){
     try{
         console.log('==== postSlack Start ====');
 
-        let today = new Date();
-        let formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-        let blocks: blocks = [
+        const today = new Date();
+        const formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        const blocks: blocks = [
             {
                 "type": "section",
                 "text": {
