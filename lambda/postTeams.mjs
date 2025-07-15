@@ -1,21 +1,16 @@
-export async function postTeams(errorList: string[][]) {
+export async function postTeams(errorList) {
   /*
         teams通知
     */
   try {
     console.log('==== postTeams Start ====');
 
-    const webhookUrl = process.env.TEAMS_URL as string;
+    const webhookUrl = process.env.TEAMS_URL;
 
     const today = new Date();
     const formattedDate = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
-    // Adaptive Cardのコンポーネント型（必要に応じて詳細化可能）
-    type AdaptiveCardElement = {
-      type: string;
-      [key: string]: any;
-    };
-    const body: AdaptiveCardElement[] = [];
+    const body = [];
 
     body.push({
       type: 'TextBlock',

@@ -3,6 +3,7 @@ import { checkKotNoStamp } from './checkKotNoStamp.mjs';
 import { checkKotLastMonthErrorStamp } from './checkKotLastMonthErrorStamp.mjs';
 import { checkKotLastMonthNoStamp } from './checkKotLastMonthNoStamp.mjs';
 import { postSlack } from './postSlack.mjs';
+import { postTeams } from './postTeams.mjs';
 import { getNextBusinessDay } from './dateUtils.mjs';
 
 export const handler = async () => {
