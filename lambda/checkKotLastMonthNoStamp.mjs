@@ -1,8 +1,9 @@
 import { chromium as playwright } from 'playwright';
 import { expect } from '@playwright/test';
 import chromium from '@sparticuz/chromium';
+import { converteLastMonth, converteLastYear } from './dateUtils.mjs';
 
-export async function checkKotNoStamp(loginId, loginPassword) {
+export async function checkKotLastMonthNoStamp(loginId, loginPassword) {
   /*
         KOTの未申請の打刻エラーを確認し、文字列のリストを返します
         打刻エラーが存在する場合：
@@ -12,7 +13,7 @@ export async function checkKotNoStamp(loginId, loginPassword) {
     */
   try {
     // KOTの初回表示ガイドが表示されないようにする
-    console.log('==== checkKotNoStamp Start ====');
+    console.log('==== checkKotLastMonthNoStamp Start ====');
 
     const browser = await playwright.launch({
       args: chromium.args, // ライブラリ提供
@@ -96,6 +97,29 @@ export async function checkKotNoStamp(loginId, loginPassword) {
     // 右上の表示ボタンの出現を待機
     await page.waitForSelector('input#display_button');
 
+    // 先月分の取得
+    const month = await page.$('input[type="hidden"]#month');
+    if (month) {
+      const thisMonth = await month.evaluate((input) => input.value);
+      const lastMonth = converteLastMonth(thisMonth);
+      // 去年を取得
+      if (lastMonth === '12') {
+        const year = await page.$('input[type="hidden"]#year');
+        if (year) {
+          const thisYear = await year.evaluate((input) => input.value);
+          const lastYear = converteLastYear(thisYear);
+          // 値を設定
+          await year.evaluate((input, value) => {
+            input.value = value;
+          }, lastYear);
+        }
+      }
+      // 値を設定
+      await month.evaluate((input, value) => {
+        input.value = value;
+      }, lastMonth);
+    }
+
     const dispBtn = await page.$('input#display_button');
     await dispBtn?.click();
     await page.waitForLoadState('domcontentloaded');
@@ -163,9 +187,9 @@ export async function checkKotNoStamp(loginId, loginPassword) {
     }
     return errorList;
   } catch (error) {
-    console.error('checkKotNoStamp Error:', error);
+    console.error('checkKotLastMonthNoStamp Error:', error);
   } finally {
-    console.log('==== checkKotNoStamp End ====');
+    console.log('==== checkKotLastMonthNoStamp End ====');
   }
 }
 
