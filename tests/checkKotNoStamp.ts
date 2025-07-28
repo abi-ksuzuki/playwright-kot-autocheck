@@ -101,11 +101,19 @@ export async function checkKotNoStamp({ page }) {
     let errorList: string[][] = [];
     let lineArr: string[] = [];
     let noStampingTrList = await page.$$('div.htBlock-adjastableTableF_inner > table > tbody > tr');
+
+    // スキップする社員
     let passEmployeeIds: string[] = [];
     if (process.env.KOT_PASS_EMPLOYEE_IDS !== undefined) {
       passEmployeeIds = process.env.KOT_PASS_EMPLOYEE_IDS.split(',');
     }
-    console.log(passEmployeeIds);
+
+    // スキップする日付
+    let passDates: string[] = [];
+    if (process.env.KOT_PASS_DATES !== undefined) {
+      passDates = process.env.KOT_PASS_DATES.split(',');
+    }
+
     // ほんとはnoStampingTrListでfor文を回したいが、
     // for文内で画面遷移する関係でcontextでエラーとなってしまう
     for (let i = 0; i < noStampingTrList.length; i++) {
@@ -117,6 +125,11 @@ export async function checkKotNoStamp({ page }) {
       const timeCardButton = await tdList[3].$('form > p > button.htBlock-buttonTimecard.htBlock-buttonTimecard_fill');
       const tmpNoStampingDt = (await tdList[6].textContent()) as string;
       const noStampingDt = tmpNoStampingDt.trim();
+
+      if (passDates.includes(noStampingDt)) {
+        console.log(`==== 対象外日付のためスキップ ${name} ${noStampingDt} ====`);
+        continue;
+      }
 
       if (passEmployeeIds.includes(name.substring(0, 5))) {
         console.log(`==== 休職中の社員のためスキップ ${name} ${noStampingDt} ====`);

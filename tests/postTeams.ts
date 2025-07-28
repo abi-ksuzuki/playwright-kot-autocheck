@@ -21,7 +21,7 @@ export async function postTeams(errorList: string[][]) {
       type: 'TextBlock',
       wrap: true,
       text: formattedDate + ' KOT における未申請の打刻エラーをお知らせします。',
-    })
+    });
 
     body.push({
       type: 'ColumnSet',

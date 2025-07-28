@@ -92,11 +92,17 @@ export async function checkKotErrorStamp({ page }) {
       return [];
     }
 
-    const trList = await page.$$('div.htBlock-adjastableTableF_inner > table > tbody > tr');
-
     let errorList: string[][] = [];
     let lineArr: string[] = [];
-    for (const tr of trList) {
+    const errorTrList = await page.$$('div.htBlock-adjastableTableF_inner > table > tbody > tr');
+
+    // スキップする日付
+    let passDates: string[] = [];
+    if (process.env.KOT_PASS_DATES !== undefined) {
+      passDates = process.env.KOT_PASS_DATES.split(',');
+    }
+
+    for (const tr of errorTrList) {
       const tdList = await tr.$$('td');
 
       const tmpName = (await tdList[2].textContent()) as string;
@@ -105,6 +111,11 @@ export async function checkKotErrorStamp({ page }) {
       const dt = tmpDt.trim();
       const tmpErrorReason = (await tdList[9].textContent()) as string;
       const errorReason = tmpErrorReason.trim();
+
+      if (passDates.includes(dt)) {
+        console.log(`==== 対象外日付のためスキップ ${name} ${dt} ====`);
+        continue;
+      }
 
       // 申請有無判定
       const shinseiIcon = await tdList[9].$('span.specific-requested');
