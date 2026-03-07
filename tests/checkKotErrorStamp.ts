@@ -105,11 +105,11 @@ export async function checkKotErrorStamp({ page }) {
     for (const tr of errorTrList) {
       const tdList = await tr.$$('td');
 
-      const tmpName = (await tdList[2].textContent()) as string;
+      const tmpName = (await tdList[3].textContent()) as string;
       const name = tmpName.trim();
-      const tmpDt = (await tdList[6].textContent()) as string;
+      const tmpDt = (await tdList[7].textContent()) as string;
       const dt = tmpDt.trim();
-      const tmpErrorReason = (await tdList[9].textContent()) as string;
+      const tmpErrorReason = (await tdList[10].textContent()) as string;
       const errorReason = tmpErrorReason.trim();
 
       if (passDates.includes(dt)) {
@@ -118,7 +118,7 @@ export async function checkKotErrorStamp({ page }) {
       }
 
       // 申請有無判定
-      const shinseiIcon = await tdList[9].$('span.specific-requested');
+      const shinseiIcon = await tdList[10].$('span.specific-requested');
       if (shinseiIcon) {
         // 申請済みの場合はスキップ
         console.log(`==== 申請済みのためスキップ ${name} ${dt} ====`);
