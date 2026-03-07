@@ -146,10 +146,10 @@ export async function checkKotLastMonthNoStamp(loginId, loginPassword) {
       const tr = noStampingTrList[i];
       const tdList = await tr.$$('td');
 
-      const tmpName = await tdList[2].textContent();
+      const tmpName = await tdList[3].textContent();
       const name = tmpName.trim();
-      const timeCardButton = await tdList[3].$('form > p > button.htBlock-buttonTimecard.htBlock-buttonTimecard_fill');
-      const tmpNoStampingDt = await tdList[6].textContent();
+      const timeCardButton = await tdList[4].$('form > p > button.htBlock-buttonTimecard.htBlock-buttonTimecard_fill');
+      const tmpNoStampingDt = await tdList[7].textContent();
       const noStampingDt = tmpNoStampingDt.trim();
 
       if (passEmployeeIds.includes(name.substring(0, 5))) {

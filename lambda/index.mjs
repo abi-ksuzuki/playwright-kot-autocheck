@@ -64,7 +64,7 @@ export const handler = async () => {
       groupErrorList = groupErrorList.sort((a, b) => a[0].localeCompare(b[0], 'ja'));
       errorList = errorList.concat(groupErrorList);
     }
-    await postSlack(errorList);
+    await postTeams(errorList);
   } catch (error) {
     console.error('test Error:', error);
   } finally {

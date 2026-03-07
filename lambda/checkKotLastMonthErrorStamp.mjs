@@ -135,15 +135,15 @@ export async function checkKotLastMonthErrorStamp(loginId, loginPassword) {
     for (const tr of trList) {
       const tdList = await tr.$$('td');
 
-      const tmpName = await tdList[2].textContent();
+      const tmpName = await tdList[3].textContent();
       const name = tmpName.trim();
-      const tmpDt = await tdList[6].textContent();
+      const tmpDt = await tdList[7].textContent();
       const dt = tmpDt.trim();
-      const tmpErrorReason = await tdList[9].textContent();
+      const tmpErrorReason = await tdList[10].textContent();
       const errorReason = tmpErrorReason.trim();
 
       // 申請有無判定
-      const shinseiIcon = await tdList[9].$('span.specific-requested');
+      const shinseiIcon = await tdList[10].$('span.specific-requested');
       if (shinseiIcon) {
         // 申請済みの場合はスキップ
         console.log(`==== 申請済みのためスキップ ${name} ${dt} ====`);
