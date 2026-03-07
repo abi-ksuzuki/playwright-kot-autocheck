@@ -35,6 +35,13 @@ KOT_LOGIN_PASSWORD="your_password"
 npx playwright test
 ```
 
+### mjsのzip化
+
+```shell
+cd lambda
+Compress-Archive -Path *.mjs -DestinationPath lambda.zip
+```
+
 ### AWS Lambdaへの移行
 
 ランタイムは Node.js 20.x じゃないとエラる
